@@ -71,14 +71,3 @@ Swagger: `http://localhost:8082/swagger-ui.html`
 - Maven 3.9+
 - Docker e Docker Compose
 
-## Status do projeto
-
-Esqueleto inicial funcional: producer, consumer, integração com gateway, persistência H2, Swagger.
-
-Próximos passos: coleção Postman/Insomnia, testes automatizados, evento de retorno do pagamento para atualizar o status do pedido, deploy.
-
-## Equipe e responsabilidades
-
-- **Pessoa 1** — `order-service` (API de pedidos / producer)
-- **Pessoa 2** — `payment-service` (consumer + integração com gateway de pagamento)
-- **Pessoa 3** — infraestrutura (docker-compose, tópico Kafka, monitoramento), documentação (Swagger, Postman/Insomnia) e testes de integração ponta a ponta
