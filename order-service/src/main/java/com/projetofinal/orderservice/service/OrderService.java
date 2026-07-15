@@ -1,7 +1,10 @@
 package com.projetofinal.orderservice.service;
 
 import com.projetofinal.orderservice.domain.Order;
+import com.projetofinal.orderservice.domain.OrderStatus;
 import com.projetofinal.orderservice.dto.CreateOrderRequest;
+import com.projetofinal.orderservice.event.OrderCreatedEvent;
+import com.projetofinal.orderservice.exception.OrderNotFoundException;
 import com.projetofinal.orderservice.kafka.OrderEventProducer;
 import com.projetofinal.orderservice.repository.OrderRepository;
 import org.springframework.stereotype.Service;
@@ -20,19 +23,25 @@ public class OrderService {
     }
 
     public Order create(CreateOrderRequest request) {
-        // TODO (Pessoa 1): salvar o pedido via orderRepository.save(new Order(...))
-        // e publicar o evento OrderCreatedEvent no Kafka via orderEventProducer.publish(...)
-        throw new UnsupportedOperationException("TODO: implementar OrderService.create");
+        Order order = orderRepository.save(new Order(request.descricao(), request.valor()));
+
+        orderEventProducer.publish(new OrderCreatedEvent(
+                order.getId(),
+                order.getDescricao(),
+                order.getValor(),
+                order.getCriadoEm()
+        ));
+
+        order.setStatus(OrderStatus.PAGAMENTO_ENVIADO);
+        return orderRepository.save(order);
     }
 
     public Order findById(Long id) {
-        // TODO (Pessoa 1): buscar o pedido pelo id (orderRepository.findById) e lancar
-        // OrderNotFoundException se nao existir
-        throw new UnsupportedOperationException("TODO: implementar OrderService.findById");
+        return orderRepository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException(id));
     }
 
     public List<Order> findAll() {
-        // TODO (Pessoa 1): retornar todos os pedidos cadastrados
-        throw new UnsupportedOperationException("TODO: implementar OrderService.findAll");
+        return orderRepository.findAll();
     }
 }
