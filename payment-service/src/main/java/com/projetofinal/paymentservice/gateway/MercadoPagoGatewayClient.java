@@ -1,15 +1,11 @@
 package com.projetofinal.paymentservice.gateway;
 
 import com.projetofinal.paymentservice.domain.PaymentStatus;
-import com.projetofinal.paymentservice.exception.PaymentGatewayException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
-import java.util.Map;
-import java.util.UUID;
 
 @Component
 public class MercadoPagoGatewayClient implements PaymentGatewayClient {
@@ -40,58 +36,24 @@ public class MercadoPagoGatewayClient implements PaymentGatewayClient {
 
     @Override
     public GatewayChargeResult criarCobranca(String descricao, BigDecimal valor) {
-        try {
-            String cardToken = tokenizarCartaoDeTeste();
-
-            Map<String, Object> response = restClient.post()
-                    .uri("/v1/payments")
-                    .header("X-Idempotency-Key", UUID.randomUUID().toString())
-                    .body(Map.of(
-                            "transaction_amount", valor,
-                            "token", cardToken,
-                            "description", descricao,
-                            "installments", 1,
-                            "payment_method_id", "master",
-                            "payer", Map.of(
-                                    "email", payerEmail,
-                                    "identification", Map.of("type", "CPF", "number", CPF_TESTE)
-                            )
-                    ))
-                    .retrieve()
-                    .body(new ParameterizedTypeReference<Map<String, Object>>() {});
-
-            String id = String.valueOf(response.get("id"));
-            String status = String.valueOf(response.get("status"));
-            return new GatewayChargeResult(id, mapStatus(status));
-        } catch (Exception ex) {
-            throw new PaymentGatewayException("Falha ao comunicar com o gateway de pagamento", ex);
-        }
+        // TODO (Pessoa 2):
+        // 1) chamar tokenizarCartaoDeTeste() para obter o token do cartao
+        // 2) fazer POST /v1/payments (transaction_amount, token, installments, payment_method_id "master",
+        //    payer com "email" e "identification") usando o restClient, envolvendo erros em PaymentGatewayException
+        // 3) mapear o campo "status" da resposta com mapStatus(...) e devolver um GatewayChargeResult
+        throw new UnsupportedOperationException("TODO: implementar MercadoPagoGatewayClient.criarCobranca");
     }
 
     private String tokenizarCartaoDeTeste() {
-        Map<String, Object> response = restClient.post()
-                .uri("/v1/card_tokens?public_key={publicKey}", publicKey)
-                .body(Map.of(
-                        "card_number", CARTAO_NUMERO,
-                        "expiration_month", CARTAO_MES,
-                        "expiration_year", CARTAO_ANO,
-                        "security_code", CARTAO_CVV,
-                        "cardholder", Map.of(
-                                "name", CARTAO_TITULAR,
-                                "identification", Map.of("type", "CPF", "number", CPF_TESTE)
-                        )
-                ))
-                .retrieve()
-                .body(new ParameterizedTypeReference<Map<String, Object>>() {});
-        return String.valueOf(response.get("id"));
+        // TODO (Pessoa 2): POST /v1/card_tokens?public_key={publicKey} com os dados do cartao de teste
+        // acima (CARTAO_NUMERO, CARTAO_CVV, CARTAO_MES, CARTAO_ANO, CARTAO_TITULAR, CPF_TESTE)
+        // e retornar o "id" do token gerado na resposta
+        throw new UnsupportedOperationException("TODO: implementar tokenizarCartaoDeTeste");
     }
 
     private PaymentStatus mapStatus(String gatewayStatus) {
-        return switch (gatewayStatus) {
-            case "approved" -> PaymentStatus.APROVADO;
-            case "rejected" -> PaymentStatus.RECUSADO;
-            case "cancelled" -> PaymentStatus.CANCELADO;
-            default -> PaymentStatus.PENDENTE;
-        };
+        // TODO (Pessoa 2): mapear "approved" -> APROVADO, "rejected" -> RECUSADO,
+        // "cancelled" -> CANCELADO, qualquer outro -> PENDENTE
+        throw new UnsupportedOperationException("TODO: implementar mapStatus");
     }
 }

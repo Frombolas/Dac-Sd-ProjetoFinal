@@ -70,4 +70,3 @@ Swagger: `http://localhost:8082/swagger-ui.html`
 - Java 21+
 - Maven 3.9+
 - Docker e Docker Compose
-
