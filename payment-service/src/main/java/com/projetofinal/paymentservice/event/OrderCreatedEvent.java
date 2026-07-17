@@ -10,3 +10,4 @@ public record OrderCreatedEvent(
         Instant criadoEm
 ) {
 }
+

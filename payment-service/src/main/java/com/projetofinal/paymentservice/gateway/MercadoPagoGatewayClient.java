@@ -1,11 +1,13 @@
 package com.projetofinal.paymentservice.gateway;
 
 import com.projetofinal.paymentservice.domain.PaymentStatus;
+import com.projetofinal.paymentservice.exception.PaymentGatewayException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Component
 public class MercadoPagoGatewayClient implements PaymentGatewayClient {
@@ -36,24 +38,86 @@ public class MercadoPagoGatewayClient implements PaymentGatewayClient {
 
     @Override
     public GatewayChargeResult criarCobranca(String descricao, BigDecimal valor) {
-        // TODO (Pessoa 2):
-        // 1) chamar tokenizarCartaoDeTeste() para obter o token do cartao
-        // 2) fazer POST /v1/payments (transaction_amount, token, installments, payment_method_id "master",
-        //    payer com "email" e "identification") usando o restClient, envolvendo erros em PaymentGatewayException
-        // 3) mapear o campo "status" da resposta com mapStatus(...) e devolver um GatewayChargeResult
-        throw new UnsupportedOperationException("TODO: implementar MercadoPagoGatewayClient.criarCobranca");
+        try {
+            String cardToken = tokenizarCartaoDeTeste();
+
+            Map<String, Object> paymentPayload = Map.of(
+                    "valor_transacao", valor,
+                    "token", cardToken,
+                    "descricao", descricao,
+                    "parcelas", 1,
+                    "id_metado_pagamento", "master",
+                    "pagadora", Map.of(
+                            "email", payerEmail,
+                            "identificacao", Map.of(
+                                    "tipo", "CPF",
+                                    "numero_cpf", CPF_TESTE
+                            )
+                    )
+            );
+
+            Map<?, ?> response = restClient.post()
+                    .uri("/v1/payments")
+                    .body(paymentPayload)
+                    .retrieve()
+                    .body(Map.class);
+
+            if (response == null) {
+                throw new PaymentGatewayException("Resposta nula recebida do Mercado Pago", null);
+            }
+
+            String transactionId = String.valueOf(response.get("id"));
+            String gatewayStatus = String.valueOf(response.get("status"));
+            PaymentStatus status = mapStatus(gatewayStatus);
+
+            return new GatewayChargeResult(transactionId, status);
+
+        } catch (Exception e) {
+            throw new PaymentGatewayException("Falha ao processar cobrança no Mercado Pago: " + e.getMessage(), e);
+        }
     }
 
     private String tokenizarCartaoDeTeste() {
-        // TODO (Pessoa 2): POST /v1/card_tokens?public_key={publicKey} com os dados do cartao de teste
-        // acima (CARTAO_NUMERO, CARTAO_CVV, CARTAO_MES, CARTAO_ANO, CARTAO_TITULAR, CPF_TESTE)
-        // e retornar o "id" do token gerado na resposta
-        throw new UnsupportedOperationException("TODO: implementar tokenizarCartaoDeTeste");
+        try {
+            Map<String, Object> cardPayload = Map.of(
+                    "numero_cartao", CARTAO_NUMERO,
+                    "cvv_cartao", CARTAO_CVV,
+                    "mes_expiracao", Integer.parseInt(CARTAO_MES),
+                    "ano_expiracao", Integer.parseInt(CARTAO_ANO),
+                    "titular_cartao", Map.of(
+                            "nome_titular", CARTAO_TITULAR,
+                            "identification", Map.of(
+                                    "tipo", "CPF",
+                                    "numero_cpf", CPF_TESTE
+                            )
+                    )
+            );
+
+            Map<?, ?> response = restClient.post()
+                    .uri("/v1/card_tokens?public_key=" + publicKey)
+                    .body(cardPayload)
+                    .retrieve()
+                    .body(Map.class);
+
+            if (response == null || !response.containsKey("id")) {
+                throw new PaymentGatewayException("Falha ao gerar token de teste do cartão no Mercado Pago", null);
+            }
+
+            return String.valueOf(response.get("id"));
+
+        } catch (Exception e) {
+            throw new PaymentGatewayException("Erro na tokenização do cartão: " + e.getMessage(), e);
+        }
     }
 
     private PaymentStatus mapStatus(String gatewayStatus) {
-        // TODO (Pessoa 2): mapear "approved" -> APROVADO, "rejected" -> RECUSADO,
-        // "cancelled" -> CANCELADO, qualquer outro -> PENDENTE
-        throw new UnsupportedOperationException("TODO: implementar mapStatus");
+        if (gatewayStatus == null) return PaymentStatus.PENDENTE;
+
+        return switch (gatewayStatus.toLowerCase()) {
+            case "aprovado" -> PaymentStatus.APROVADO;
+            case "recusado" -> PaymentStatus.RECUSADO;
+            case "cancelado" -> PaymentStatus.CANCELADO;
+            default -> PaymentStatus.PENDENTE;
+        };
     }
 }
