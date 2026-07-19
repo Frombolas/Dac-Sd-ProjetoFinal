@@ -1,9 +1,11 @@
 package com.projetofinal.paymentservice.exception;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.Instant;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -11,13 +13,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(PaymentNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNotFound(PaymentNotFoundException ex) {
-        // TODO (Pessoa 2): retornar 404 (HttpStatus.NOT_FOUND) com uma mensagem de erro no corpo
-        throw new UnsupportedOperationException("TODO: implementar handleNotFound");
+        Map<String, Object> body = Map.of(
+                "timestamp", Instant.now(),
+                "status", HttpStatus.NOT_FOUND.value(),
+                "error", "Payment Not Found",
+                "message", ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
     @ExceptionHandler(PaymentGatewayException.class)
     public ResponseEntity<Map<String, Object>> handleGateway(PaymentGatewayException ex) {
-        // TODO (Pessoa 2): retornar 502 (Bad Gateway) com a mensagem de erro do gateway
-        throw new UnsupportedOperationException("TODO: implementar handleGateway");
+        Map<String, Object> body = Map.of(
+                "timestamp", Instant.now(),
+                "status", HttpStatus.BAD_GATEWAY.value(),
+                "error", "Bad Gateway",
+                "message", ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(body);
     }
 }

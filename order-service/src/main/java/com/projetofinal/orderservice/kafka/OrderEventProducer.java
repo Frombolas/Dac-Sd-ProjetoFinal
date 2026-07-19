@@ -18,7 +18,6 @@ public class OrderEventProducer {
     }
 
     public void publish(OrderCreatedEvent event) {
-        // TODO (Pessoa 1): publicar o evento no topico Kafka, ex: kafkaTemplate.send(topic, chave, event)
-        throw new UnsupportedOperationException("TODO: implementar OrderEventProducer.publish");
+        kafkaTemplate.send(topic, String.valueOf(event.pedidoId()), event);
     }
 }
