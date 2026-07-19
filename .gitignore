@@ -20,9 +20,4 @@ Thumbs.db
 # Environment
 .env
 
-# Claude / RTK (ferramentas locais, nao fazem parte do projeto)
-.claude/
-.rtk/
-CLAUDE.md
-*.rtk
-*claude.md
+
