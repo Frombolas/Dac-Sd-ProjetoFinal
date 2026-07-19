@@ -1,0 +1,38 @@
+meta {
+  name: Criar Pedido
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{orderBaseUrl}}/api/pedidos
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "descricao": "Assinatura mensal",
+    "valor": 99.90
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("pedidoId", res.body.id);
+  }
+}
+
+tests {
+  test("deve criar o pedido com status 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  test("deve retornar o id do pedido", function() {
+    expect(res.body.id).to.be.a("number");
+  });
+}

@@ -1,0 +1,17 @@
+meta {
+  name: Listar Pagamentos
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{paymentBaseUrl}}/api/pagamentos
+  body: none
+  auth: none
+}
+
+tests {
+  test("deve retornar 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

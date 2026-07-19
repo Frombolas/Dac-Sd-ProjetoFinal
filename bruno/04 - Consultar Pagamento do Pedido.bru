@@ -1,0 +1,25 @@
+meta {
+  name: Consultar Pagamento do Pedido
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{paymentBaseUrl}}/api/pagamentos/pedido/{{pedidoId}}
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  await new Promise(resolve => setTimeout(resolve, 3000));
+}
+
+tests {
+  test("deve retornar 200 depois do consumer processar o evento", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("deve ter um status de pagamento valido", function() {
+    expect(res.body.status).to.be.oneOf(["PENDENTE", "APROVADO", "RECUSADO", "CANCELADO"]);
+  });
+}

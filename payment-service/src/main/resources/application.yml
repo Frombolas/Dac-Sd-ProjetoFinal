@@ -34,8 +34,5 @@ app:
       pedidos: pedidos-criados
 
 gateway:
-  mercadopago:
-    base-url: https://api.mercadopago.com
-    access-token: ${MERCADOPAGO_ACCESS_TOKEN:TEST-ACCESS-TOKEN}
-    public-key: ${MERCADOPAGO_PUBLIC_KEY:TEST-PUBLIC-KEY}
-    payer-email: ${MERCADOPAGO_PAYER_EMAIL:comprador@teste.com}
+  stripe:
+    secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
